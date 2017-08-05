@@ -5,7 +5,7 @@
 // gcc commandline. Since Arduino does not allow easily modifying the
 // compiler commandline, use this file instead.
 
-#define CFG_eu868 1
+ #define CFG_eu868 1
 //#define CFG_us915 1
 // This is the SX1272/SX1273 radio, which is also used on the HopeRF
 // RFM92 boards.
@@ -72,12 +72,12 @@
 // implementation is optimized for speed on 32-bit processors using
 // fairly big lookup tables, but it takes up big amounts of flash on the
 // AVR architecture.
-// #define USE_ORIGINAL_AES
+ #define USE_ORIGINAL_AES
 //
 // This selects the AES implementation written by Ideetroon for their
 // own LoRaWAN library. It also uses lookup tables, but smaller
 // byte-oriented ones, making it use a lot less flash space (but it is
 // also about twice as slow as the original).
-#define USE_IDEETRON_AES
+// #define USE_IDEETRON_AES
 
 #endif // _lmic_config_h_

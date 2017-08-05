@@ -25,75 +25,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _hal_hpp_
-#define _hal_hpp_
+// intialize debug library
+void debug_init (void);
 
-/*
- * initialize hardware (IO, SPI, TIMER, IRQ).
- */
-void hal_init (void);
+// set LED state
+void debug_led (int val);
 
-/*
- * drive radio NSS pin (0=low, 1=high).
- */
-void hal_pin_nss (u1_t val);
+// write character to USART
+void debug_char (char c);
 
-/*
- * drive radio RX/TX pins (0=rx, 1=tx).
- */
-void hal_pin_rxtx (u1_t val);
+// write byte as two hex digits to USART
+void debug_hex (u1_t b);
 
-/*
- * control radio RST pin (0=low, 1=high, 2=floating)
- */
-void hal_pin_rst (u1_t val);
+// write buffer as hex dump to USART
+void debug_buf (const u1_t* buf, int len);
 
-/*
- * perform 8-bit SPI transaction with radio.
- *   - write given byte 'outval'
- *   - read byte and return value
- */
-u1_t hal_spi (u1_t outval);
+// write 32-bit integer as eight hex digits to USART
+void debug_uint (u4_t v);
 
-/*
- * disable all CPU interrupts.
- *   - might be invoked nested 
- *   - will be followed by matching call to hal_enableIRQs()
- */
-void hal_disableIRQs (void);
+// write 32-bit integer as signed decimal digits to USART
+void debug_int (s4_t v);
 
-/*
- * enable CPU interrupts.
- */
-void hal_enableIRQs (void);
+// write nul-terminated string to USART
+void debug_str (const char* str);
 
-/*
- * put system and CPU in low-power mode, sleep until interrupt.
- */
-void hal_sleep (void);
+// write LMiC event name to USART
+void debug_event (int ev);
 
-/*
- * return 32-bit system time in ticks.
- */
-u4_t hal_ticks (void);
+// write label and 32-bit value as hex to USART
+void debug_val (const char* label, u4_t val);
 
-/*
- * busy-wait until specified timestamp (in ticks) is reached.
- */
-void hal_waitUntil (u4_t time);
+// write label and 32-bit value as signed decimal to USART
+void debug_valdec (const char* label, s4_t val);
 
-/*
- * check and rewind timer for target time.
- *   - return 1 if target time is close
- *   - otherwise rewind timer for target time or full period and return 0
- */
-u1_t hal_checkTimer (u4_t targettime);
-
-/*
- * perform fatal failure action.
- *   - called by assertions
- *   - action could be HALT or reboot
- */
-void hal_failed (void);
-
-#endif // _hal_hpp_
+// convert integer 'val' to ASCII string (bin/oct/dec/hex/base36)
+// store string at 'buf', return number of characters written
+int debug_fmt (char* buf, int max, s4_t val, int base, int width, char pad);

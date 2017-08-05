@@ -215,7 +215,7 @@ static void aes_sessKeys (u2_t devnonce, xref2cu1_t artnonce, xref2u1_t nwkkey, 
 
 #define maxFrameLen(dr) ((dr)<=DR_SF9 ? TABLE_GET_U1(maxFrameLens, (dr)) : 0xFF)
 CONST_TABLE(u1_t, maxFrameLens) [] = { 64,64,64,123 };
-
+/*
 CONST_TABLE(u1_t, _DR2RPS_CRC)[] = {
     ILLEGAL_RPS,
     (u1_t)MAKERPS(SF12, BW125, CR_4_5, 0, 0),
@@ -228,6 +228,20 @@ CONST_TABLE(u1_t, _DR2RPS_CRC)[] = {
     (u1_t)MAKERPS(FSK,  BW125, CR_4_5, 0, 0),
     ILLEGAL_RPS
 };
+*/
+const u1_t _DR2RPS_CRC[] = {
+    ILLEGAL_RPS,
+    (u1_t)MAKERPS(SF12, BW125, CR_4_5, 0, 0),
+    (u1_t)MAKERPS(SF11, BW125, CR_4_5, 0, 0),
+    (u1_t)MAKERPS(SF10, BW125, CR_4_5, 0, 0),
+    (u1_t)MAKERPS(SF9,  BW125, CR_4_5, 0, 0),
+    (u1_t)MAKERPS(SF8,  BW125, CR_4_5, 0, 0),
+    (u1_t)MAKERPS(SF7,  BW125, CR_4_5, 0, 0),
+    (u1_t)MAKERPS(SF7,  BW250, CR_4_5, 0, 0),
+    (u1_t)MAKERPS(FSK,  BW125, CR_4_5, 0, 0),
+    ILLEGAL_RPS
+};
+
 
 static CONST_TABLE(s1_t, TXPOWLEVELS)[] = {
     20, 14, 11, 8, 5, 2, 0,0, 0,0,0,0, 0,0,0,0
@@ -238,8 +252,27 @@ static CONST_TABLE(s1_t, TXPOWLEVELS)[] = {
 
 #define maxFrameLen(dr) ((dr)<=DR_SF11CR ? TABLE_GET_U1(maxFrameLens, (dr)) : 0xFF)
 CONST_TABLE(u1_t, maxFrameLens) [] = { 24,66,142,255,255,255,255,255,  66,142 };
-
+/*
 CONST_TABLE(u1_t, _DR2RPS_CRC)[] = {
+    ILLEGAL_RPS,
+    MAKERPS(SF10, BW125, CR_4_5, 0, 0),
+    MAKERPS(SF9 , BW125, CR_4_5, 0, 0),
+    MAKERPS(SF8 , BW125, CR_4_5, 0, 0),
+    MAKERPS(SF7 , BW125, CR_4_5, 0, 0),
+    MAKERPS(SF8 , BW500, CR_4_5, 0, 0),
+    ILLEGAL_RPS ,
+    ILLEGAL_RPS ,
+    ILLEGAL_RPS ,
+    MAKERPS(SF12, BW500, CR_4_5, 0, 0),
+    MAKERPS(SF11, BW500, CR_4_5, 0, 0),
+    MAKERPS(SF10, BW500, CR_4_5, 0, 0),
+    MAKERPS(SF9 , BW500, CR_4_5, 0, 0),
+    MAKERPS(SF8 , BW500, CR_4_5, 0, 0),
+    MAKERPS(SF7 , BW500, CR_4_5, 0, 0),
+    ILLEGAL_RPS
+};
+*/
+const u1_t _DR2RPS_CRC[] = {
     ILLEGAL_RPS,
     MAKERPS(SF10, BW125, CR_4_5, 0, 0),
     MAKERPS(SF9 , BW125, CR_4_5, 0, 0),

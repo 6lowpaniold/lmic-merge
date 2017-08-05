@@ -25,75 +25,44 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _hal_hpp_
-#define _hal_hpp_
+#include "hw.h"
 
-/*
- * initialize hardware (IO, SPI, TIMER, IRQ).
- */
-void hal_init (void);
+//////////////////////////////////////////////////////////////////////
+// SPI 2
+//////////////////////////////////////////////////////////////////////
 
-/*
- * drive radio NSS pin (0=low, 1=high).
- */
-void hal_pin_nss (u1_t val);
+//                    // NSS:  PB12
 
-/*
- * drive radio RX/TX pins (0=rx, 1=tx).
- */
-void hal_pin_rxtx (u1_t val);
+#define SCK_PORT   1  // SCK:  PB13
+#define SCK_PIN    13
+#define MISO_PORT  1  // MISO: PB14
+#define MISO_PIN   14
+#define MOSI_PORT  1  // MOSI: PB15
+#define MOSI_PIN   15
 
-/*
- * control radio RST pin (0=low, 1=high, 2=floating)
- */
-void hal_pin_rst (u1_t val);
+#define GPIO_AF_SPI2        0x05
 
-/*
- * perform 8-bit SPI transaction with radio.
- *   - write given byte 'outval'
- *   - read byte and return value
- */
-u1_t hal_spi (u1_t outval);
+void spi_init (u1_t mode) {
+    // enable clocks
+    RCC->AHBENR  |= RCC_AHBENR_GPIOBEN; // GPIO ports B
+    RCC->APB1ENR |= RCC_APB1ENR_SPI2EN; // SPI interface 2
 
-/*
- * disable all CPU interrupts.
- *   - might be invoked nested 
- *   - will be followed by matching call to hal_enableIRQs()
- */
-void hal_disableIRQs (void);
+    // reset/stop
+    SPI2->CR1 = 0; // clear SPE
 
-/*
- * enable CPU interrupts.
- */
-void hal_enableIRQs (void);
+    // use alternate function SPI2 (SCK, MISO, MOSI)
+    hw_cfg_pin(GPIOx(SCK_PORT),  SCK_PIN,  GPIOCFG_MODE_ALT | GPIOCFG_OSPEED_40MHz | GPIO_AF_SPI2 | GPIOCFG_OTYPE_PUPD | GPIOCFG_PUPD_PDN);
+    hw_cfg_pin(GPIOx(MISO_PORT), MISO_PIN, GPIOCFG_MODE_ALT | GPIOCFG_OSPEED_40MHz | GPIO_AF_SPI2 | GPIOCFG_OTYPE_PUPD | GPIOCFG_PUPD_PDN);
+    hw_cfg_pin(GPIOx(MOSI_PORT), MOSI_PIN, GPIOCFG_MODE_ALT | GPIOCFG_OSPEED_40MHz | GPIO_AF_SPI2 | GPIOCFG_OTYPE_PUPD | GPIOCFG_PUPD_PDN);
+    
+    // configure and activate the SPI (master, internal slave select, software slave mgmt)
+    // (use default mode: 8-bit, 2-wire, no crc, MSBF, PCLK/2, CPOL0, CPHA0)
+    SPI2->CR1 = SPI_CR1_MSTR | SPI_CR1_SSI | SPI_CR1_SSM | SPI_CR1_SPE | (mode & 0x03);
+}
 
-/*
- * put system and CPU in low-power mode, sleep until interrupt.
- */
-void hal_sleep (void);
-
-/*
- * return 32-bit system time in ticks.
- */
-u4_t hal_ticks (void);
-
-/*
- * busy-wait until specified timestamp (in ticks) is reached.
- */
-void hal_waitUntil (u4_t time);
-
-/*
- * check and rewind timer for target time.
- *   - return 1 if target time is close
- *   - otherwise rewind timer for target time or full period and return 0
- */
-u1_t hal_checkTimer (u4_t targettime);
-
-/*
- * perform fatal failure action.
- *   - called by assertions
- *   - action could be HALT or reboot
- */
-void hal_failed (void);
-
-#endif // _hal_hpp_
+// perform SPI transaction
+u1_t spi_xfer (u1_t out) {
+    SPI2->DR = out;
+    while( (SPI2->SR & SPI_SR_RXNE ) == 0);
+    return SPI2->DR; // in
+}

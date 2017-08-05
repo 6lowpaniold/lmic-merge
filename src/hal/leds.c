@@ -25,75 +25,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _hal_hpp_
-#define _hal_hpp_
 
-/*
- * initialize hardware (IO, SPI, TIMER, IRQ).
- */
-void hal_init (void);
+#include "hw.h"
+#include "leds.h"
 
-/*
- * drive radio NSS pin (0=low, 1=high).
- */
-void hal_pin_nss (u1_t val);
+static const struct {
+    GPIO_TypeDef* port;
+    u1_t pin;
+} leds[] = {      // ID  PIN   IMST       LRSC   BLIPPER
+    { GPIOA, 3 }, // 0   PA3   D1 red     -      -
+    { GPIOA, 0 }, // 1   PA0   D2 yellow  green  -
+    { GPIOA, 1 }, // 2   PA1   D3 green   red    -
+    { GPIOA, 8 }, // 3   PA8   D4 orange  -      -
+};
 
-/*
- * drive radio RX/TX pins (0=rx, 1=tx).
- */
-void hal_pin_rxtx (u1_t val);
+void leds_init (void) {
+    // configure LED pins as output
+    for(u1_t i=0; i<sizeof(leds)/sizeof(leds[0]); i++) {
+        hw_cfg_pin(leds[i].port, leds[i].pin, GPIOCFG_MODE_OUT | GPIOCFG_OSPEED_40MHz | GPIOCFG_OTYPE_PUPD | GPIOCFG_PUPD_PUP);
+        leds_set(i, 0);
+    }
+}
 
-/*
- * control radio RST pin (0=low, 1=high, 2=floating)
- */
-void hal_pin_rst (u1_t val);
-
-/*
- * perform 8-bit SPI transaction with radio.
- *   - write given byte 'outval'
- *   - read byte and return value
- */
-u1_t hal_spi (u1_t outval);
-
-/*
- * disable all CPU interrupts.
- *   - might be invoked nested 
- *   - will be followed by matching call to hal_enableIRQs()
- */
-void hal_disableIRQs (void);
-
-/*
- * enable CPU interrupts.
- */
-void hal_enableIRQs (void);
-
-/*
- * put system and CPU in low-power mode, sleep until interrupt.
- */
-void hal_sleep (void);
-
-/*
- * return 32-bit system time in ticks.
- */
-u4_t hal_ticks (void);
-
-/*
- * busy-wait until specified timestamp (in ticks) is reached.
- */
-void hal_waitUntil (u4_t time);
-
-/*
- * check and rewind timer for target time.
- *   - return 1 if target time is close
- *   - otherwise rewind timer for target time or full period and return 0
- */
-u1_t hal_checkTimer (u4_t targettime);
-
-/*
- * perform fatal failure action.
- *   - called by assertions
- *   - action could be HALT or reboot
- */
-void hal_failed (void);
-
-#endif // _hal_hpp_
+void leds_set (u1_t id, u1_t state) {
+    hw_set_pin(leds[id].port, leds[id].pin, state);
+}

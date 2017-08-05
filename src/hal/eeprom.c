@@ -25,75 +25,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _hal_hpp_
-#define _hal_hpp_
+#include "hw.h"
+#include "lmic.h"
 
-/*
- * initialize hardware (IO, SPI, TIMER, IRQ).
- */
-void hal_init (void);
+// write 32-bit word to EEPROM memory
+void eeprom_write (u4_t* addr, u4_t val) {
+    // check previous value
+    if( *addr != val ) {
+        // unlock data eeprom memory and registers
+        FLASH->PEKEYR = 0x89ABCDEF; // FLASH_PEKEY1
+        FLASH->PEKEYR = 0x02030405; // FLASH_PEKEY2
 
-/*
- * drive radio NSS pin (0=low, 1=high).
- */
-void hal_pin_nss (u1_t val);
+        // only auto-erase if neccessary (when content is non-zero)
+        FLASH->PECR &= ~FLASH_PECR_FTDW; // clear FTDW
 
-/*
- * drive radio RX/TX pins (0=rx, 1=tx).
- */
-void hal_pin_rxtx (u1_t val);
+        // write value
+        *addr = val;
 
-/*
- * control radio RST pin (0=low, 1=high, 2=floating)
- */
-void hal_pin_rst (u1_t val);
+        // check for end of programming
+        while(FLASH->SR & FLASH_SR_BSY); // loop while busy
 
-/*
- * perform 8-bit SPI transaction with radio.
- *   - write given byte 'outval'
- *   - read byte and return value
- */
-u1_t hal_spi (u1_t outval);
+        // lock data eeprom memory and registers
+        FLASH->PECR |= FLASH_PECR_PELOCK;
 
-/*
- * disable all CPU interrupts.
- *   - might be invoked nested 
- *   - will be followed by matching call to hal_enableIRQs()
- */
-void hal_disableIRQs (void);
+        // verify value
+        while( *(volatile u4_t*)addr != val ); // halt on mismatch
+    }
+}
 
-/*
- * enable CPU interrupts.
- */
-void hal_enableIRQs (void);
+void eeprom_copy (void* dst, const void* src, u2_t len) {
+    while(((u4_t)dst & 3) || ((u4_t)src & 3) || (len & 3)); // halt if not multiples of 4
+    u4_t* d = (u4_t*)dst;
+    u4_t* s = (u4_t*)src;
+    u2_t  l = len/4;
 
-/*
- * put system and CPU in low-power mode, sleep until interrupt.
- */
-void hal_sleep (void);
-
-/*
- * return 32-bit system time in ticks.
- */
-u4_t hal_ticks (void);
-
-/*
- * busy-wait until specified timestamp (in ticks) is reached.
- */
-void hal_waitUntil (u4_t time);
-
-/*
- * check and rewind timer for target time.
- *   - return 1 if target time is close
- *   - otherwise rewind timer for target time or full period and return 0
- */
-u1_t hal_checkTimer (u4_t targettime);
-
-/*
- * perform fatal failure action.
- *   - called by assertions
- *   - action could be HALT or reboot
- */
-void hal_failed (void);
-
-#endif // _hal_hpp_
+    while(l--) {
+        eeprom_write(d++, *s++);
+    }
+}
