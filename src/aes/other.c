@@ -28,7 +28,7 @@
  */
 
 #include "../lmic/oslmic.h"
-
+#define USE_ORIGINAL_AES
 #if !defined(USE_ORIGINAL_AES)
 
 // This should be defined elsewhere

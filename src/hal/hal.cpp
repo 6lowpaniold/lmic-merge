@@ -16,6 +16,9 @@
 
 // -----------------------------------------------------------------------------
 // I/O
+#define US_PER_OSTICK_EXPONENT 4
+#define US_PER_OSTICK (1 << US_PER_OSTICK_EXPONENT)
+#define OSTICKS_PER_SEC (1000000 / US_PER_OSTICK)
 
 void hal_io_init () {
     // NSS and DIO0 are required, DIO1 is required for LoRa, DIO2 for FSK
@@ -277,6 +280,11 @@ void hal_failed (const char *file, u2_t line) {
     LMIC_FAILURE_TO.println(line);
     LMIC_FAILURE_TO.flush();
 #endif
+    hal_disableIRQs();
+    while(1);
+}
+
+void hal_failed () {
     hal_disableIRQs();
     while(1);
 }
